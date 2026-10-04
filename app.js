@@ -1,5 +1,5 @@
 (() => {
-  const FIXED_FRAME_SRC = "frames/twb18.png"; 
+  const FIXED_FRAME_SRC = "Frames/twb18.png"; 
 
   const MIN_ZOOM = 0.1;
   const MAX_ZOOM = 5;
@@ -78,7 +78,6 @@
       return;
     }
     
-    $("empty").style.display = "none";
     $("hint").hidden = false;
     stage.classList.add("ready");
     controls.forEach((el) => (el.disabled = false));
@@ -90,7 +89,7 @@
     try {
       img = await loadImage(FIXED_FRAME_SRC);
     } catch {
-      alert("Gagal memuat file twibbon frames/twb18.png. Pastikan file gambar sudah di-upload ke folder frames.");
+      alert("Gagal memuat file twibbon Frames/twb18.png. Pastikan file gambar sudah di-upload ke folder frames.");
       return;
     }
     state.frame = img;
