@@ -1,5 +1,5 @@
 (() => {
-  const FIXED_FRAME_SRC = "Frames/twb18.png"; 
+  const FIXED_FRAME_SRC = "frames/twb18.png"; 
 
   const MIN_ZOOM = 0.1;
   const MAX_ZOOM = 5;
@@ -78,9 +78,7 @@
       return;
     }
     
-    // INI YANG MEMBUAT KOTAK UPLOAD LANGSUNG HILANG
     $("empty").style.display = "none";
-    
     $("hint").hidden = false;
     stage.classList.add("ready");
     controls.forEach((el) => (el.disabled = false));
