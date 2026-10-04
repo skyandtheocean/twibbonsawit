@@ -160,8 +160,8 @@
   });
 
   resetBtn.addEventListener("click", resetTransform);
-
-  // Mouse Dragging
+  
+  // Mouse Down (Komputer)
   canvas.addEventListener("mousedown", (e) => {
     if (!photoImg) return;
     isDragging = true;
@@ -169,6 +169,28 @@
     startY = e.clientY - posY;
   });
 
+  // Touch Start (HP)
+  canvas.addEventListener("touchstart", (e) => {
+    if (!photoImg) return;
+    
+    // Jika menyentuh dengan 1 jari (untuk geser)
+    if (e.touches.length === 1) {
+      isDragging = true;
+      startX = e.touches[0].clientX - posX;
+      startY = e.touches[0].clientY - posY;
+    } 
+    // Jika menyentuh dengan 2 jari (untuk pinch / zoom)
+    else if (e.touches.length === 2) {
+      isDragging = false;
+      initialPinchDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialScale = scale;
+    }
+  }, { passive: false });
+
+  // Mouse Move (Komputer)
   window.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
     posX = e.clientX - startX;
@@ -176,11 +198,46 @@
     render();
   });
 
+  // Touch Move (HP - Geser & Pinch Zoom)
+  window.addEventListener("touchmove", (e) => {
+    if (!photoImg) return;
+
+    // Geser dengan 1 jari
+    if (isDragging && e.touches.length === 1) {
+      posX = e.touches[0].clientX - startX;
+      posY = e.touches[0].clientY - startY;
+      render();
+    } 
+    // Zoom / Pinch dengan 2 jari
+    else if (e.touches.length === 2 && initialPinchDistance !== null) {
+      e.preventDefault(); // Mencegah layar HP ikut nge-scroll/zoom bawaan browser
+      const currentDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      
+      const zoomFactor = currentDistance / initialPinchDistance;
+      scale = Math.min(
+        parseFloat(zoomInput.max),
+        Math.max(parseFloat(zoomInput.min), initialScale * zoomFactor)
+      );
+      
+      updateControlsUI();
+      render();
+    }
+  }, { passive: false });
+
+  // Mouse Up & Touch End (Selesai Geser/Zoom)
   window.addEventListener("mouseup", () => {
     isDragging = false;
   });
 
-  // Mouse Wheel Zoom
+  window.addEventListener("touchend", () => {
+    isDragging = false;
+    initialPinchDistance = null;
+  });
+
+  // ---- 2. MOUSE WHEEL ZOOM (Scroll Komputer) ----
   canvas.addEventListener("wheel", (e) => {
     if (!photoImg) return;
     e.preventDefault();
