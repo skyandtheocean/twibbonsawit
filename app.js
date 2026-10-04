@@ -102,7 +102,6 @@
     draw();
   }
 
-  // ---- Pointer gestures (Drag & Pinch-Zoom) ----
   const pointers = new Map();
   let pinch = null;
 
@@ -204,3 +203,20 @@
 
   initFixedFrame();
 })();
+
+  const bgm = $("bgm");
+  const musicToggle = $("musicToggle");
+
+  if (bgm && musicToggle) {
+    musicToggle.addEventListener("click", () => {
+      if (bgm.paused) {
+        bgm.play();
+        musicToggle.textContent = "🔊 Pause Music";
+        musicToggle.classList.add("playing");
+      } else {
+        bgm.pause();
+        musicToggle.textContent = "🎵 Play Music";
+        musicToggle.classList.remove("playing");
+      }
+    });
+  }
