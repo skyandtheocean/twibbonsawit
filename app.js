@@ -201,9 +201,6 @@
     }, "image/png");
   });
 
-  initFixedFrame();
-})();
-
   const bgm = $("bgm");
   const musicToggle = $("musicToggle");
 
@@ -220,3 +217,6 @@
       }
     });
   }
+
+  initFixedFrame();
+})();
