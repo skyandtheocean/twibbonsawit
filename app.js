@@ -1,5 +1,4 @@
 (() => {
-  // Menggunakan satu file twibbon tetap dari folder frames
   const FIXED_FRAME_SRC = "Frames/twb18.png"; 
 
   const MIN_ZOOM = 0.1;
@@ -78,7 +77,10 @@
       alert("Gambar tidak bisa dibuka. Coba file lain (JPG atau PNG).");
       return;
     }
-    $("empty").hidden = true;
+    
+    // INI YANG MEMBUAT KOTAK UPLOAD LANGSUNG HILANG
+    $("empty").style.display = "none";
+    
     $("hint").hidden = false;
     stage.classList.add("ready");
     controls.forEach((el) => (el.disabled = false));
@@ -203,6 +205,5 @@
     }, "image/png");
   });
 
-  // Jalankan pemuatan bingkai utama saat halaman dimuat
   initFixedFrame();
 })();
