@@ -1,203 +1,209 @@
-(() => {
-  const FIXED_FRAME_SRC = "Frames/twb18.png"; 
-
-  const MIN_ZOOM = 0.1;
-  const MAX_ZOOM = 5;
-
+(function () {
   const $ = (id) => document.getElementById(id);
+
   const canvas = $("canvas");
   const ctx = canvas.getContext("2d");
-  const stage = $("stage");
-  const zoomEl = $("zoom");
-  const rotateEl = $("rotate");
-  const controls = ["zoom", "rotate", "zoomInBtn", "zoomOutBtn", "resetBtn", "download"].map($);
 
-  const state = { photo: null, frame: null, x: 0, y: 0, zoom: 1, rot: 0 };
+  const photoInput = $("photoInput");
+  const pickPhotoBtn = $("pickPhoto");
 
-  const loadImage = (src) =>
-    new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = src;
-    });
+  const zoomInput = $("zoom");
+  const rotateInput = $("rotate");
 
-  const coverScale = () =>
-    Math.max(canvas.width / state.photo.naturalWidth, canvas.height / state.photo.naturalHeight);
+  const zoomOutOutput = $("zoomOut");
+  const rotateOutOutput = $("rotateOut");
 
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (state.photo) {
-      const s = coverScale() * state.zoom;
+  const zoomInBtn = $("zoomInBtn");
+  const zoomOutBtn = $("zoomOutBtn");
+  const resetBtn = $("resetBtn");
+  const downloadBtn = $("download");
+
+  const hint = $("hint");
+
+  let frameImg = new Image();
+  let photoImg = null;
+
+  // Frame URL & Canvas Size
+  const FRAME_SRC = "frame.png";
+  const CANVAS_SIZE = 1080;
+
+  canvas.width = CANVAS_SIZE;
+  canvas.height = CANVAS_SIZE;
+
+  // State Transform
+  let scale = 1;
+  let rotation = 0; // Derajat
+  let posX = 0;
+  let posY = 0;
+
+  // Dragging State
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+
+  // Touch State
+  let initialPinchDistance = null;
+  let initialScale = 1;
+
+  function initFixedFrame() {
+    frameImg.src = FRAME_SRC;
+    frameImg.onload = () => {
+      render();
+    };
+  }
+
+  function setControlsEnabled(enabled) {
+    zoomInput.disabled = !enabled;
+    rotateInput.disabled = !enabled;
+    zoomInBtn.disabled = !enabled;
+    zoomOutBtn.disabled = !enabled;
+    resetBtn.disabled = !enabled;
+    downloadBtn.disabled = !enabled;
+    if (enabled) {
+      hint.hidden = false;
+    }
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+    if (photoImg) {
       ctx.save();
-      ctx.translate(state.x, state.y);
-      ctx.rotate((state.rot * Math.PI) / 180);
-      ctx.scale(s, s);
-      ctx.drawImage(state.photo, -state.photo.naturalWidth / 2, -state.photo.naturalHeight / 2);
+      ctx.translate(CANVAS_SIZE / 2 + posX, CANVAS_SIZE / 2 + posY);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.scale(scale, scale);
+
+      ctx.drawImage(
+        photoImg,
+        -photoImg.width / 2,
+        -photoImg.height / 2,
+        photoImg.width,
+        photoImg.height
+      );
       ctx.restore();
     }
-    if (state.frame) ctx.drawImage(state.frame, 0, 0, canvas.width, canvas.height);
-  }
 
-  function syncControls() {
-    zoomEl.value = state.zoom;
-    rotateEl.value = state.rot;
-    $("zoomOut").textContent = Math.round(state.zoom * 100) + "%";
-    $("rotateOut").textContent = Math.round(state.rot) + "°";
-  }
-
-  function resetPosition() {
-    state.x = canvas.width / 2;
-    state.y = canvas.height / 2;
-    state.zoom = 1;
-    state.rot = 0;
-    syncControls();
-    draw();
-  }
-
-  function zoomTo(next, px = canvas.width / 2, py = canvas.height / 2) {
-    next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
-    const k = next / state.zoom;
-    state.x = px + (state.x - px) * k;
-    state.y = py + (state.y - py) * k;
-    state.zoom = next;
-    syncControls();
-    draw();
-  }
-
-  async function setPhoto(file) {
-    if (!file || !file.type.startsWith("image/")) return;
-    const url = URL.createObjectURL(file);
-    try {
-      const img = await loadImage(url);
-      if (state.photo) URL.revokeObjectURL(state.photo.src);
-      state.photo = img;
-    } catch {
-      URL.revokeObjectURL(url);
-      alert("Gambar tidak bisa dibuka. Coba file lain (JPG atau PNG).");
-      return;
+    if (frameImg.complete && frameImg.naturalWidth !== 0) {
+      ctx.drawImage(frameImg, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
     }
-    
-    $("hint").hidden = false;
-    stage.classList.add("ready");
-    controls.forEach((el) => (el.disabled = false));
-    resetPosition();
   }
 
-  async function initFixedFrame() {
-    let img;
-    try {
-      img = await loadImage(FIXED_FRAME_SRC);
-    } catch {
-      alert("Gagal memuat file twibbon Frames/twb18.png. Pastikan file gambar sudah di-upload ke folder frames.");
-      return;
-    }
-    state.frame = img;
-    const w = img.naturalWidth || 1080;
-    const h = img.naturalHeight || 1080;
-    const fit = Math.min(1, 2400 / Math.max(w, h));
-    canvas.width = Math.round(w * fit);
-    canvas.height = Math.round(h * fit);
-    stage.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
-    draw();
+  function updateControlsUI() {
+    zoomInput.value = scale;
+    zoomOutOutput.textContent = Math.round(scale * 100) + "%";
+
+    rotateInput.value = rotation;
+    rotateOutOutput.textContent = rotation + "°";
   }
 
-  const pointers = new Map();
-  let pinch = null;
+  function resetTransform() {
+    if (!photoImg) return;
+    const baseScale = Math.max(
+      CANVAS_SIZE / photoImg.width,
+      CANVAS_SIZE / photoImg.height
+    );
+    scale = baseScale;
+    rotation = 0;
+    posX = 0;
+    posY = 0;
 
-  const toCanvas = (e) => {
-    const r = canvas.getBoundingClientRect();
-    return { x: ((e.clientX - r.left) / r.width) * canvas.width, y: ((e.clientY - r.top) / r.height) * canvas.height };
-  };
+    zoomInput.min = baseScale * 0.2;
+    zoomInput.max = baseScale * 5;
 
-  const pinchInfo = () => {
-    const [a, b] = [...pointers.values()];
-    return { dist: Math.hypot(a.x - b.x, a.y - b.y), mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
-  };
+    updateControlsUI();
+    render();
+  }
 
-  stage.addEventListener("pointerdown", (e) => {
-    if (!state.photo) return;
-    stage.setPointerCapture(e.pointerId);
-    pointers.set(e.pointerId, toCanvas(e));
-    stage.classList.add("dragging");
-    if (pointers.size === 2) pinch = { ...pinchInfo(), zoom: state.zoom };
+  // Handle Photo Upload
+  pickPhotoBtn.addEventListener("click", () => photoInput.click());
+
+  photoInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const img = new Image();
+      img.onload = () => {
+        photoImg = img;
+        resetTransform();
+        setControlsEnabled(true);
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
   });
 
-  stage.addEventListener("pointermove", (e) => {
-    if (!pointers.has(e.pointerId)) return;
-    const prev = pointers.get(e.pointerId);
-    const cur = toCanvas(e);
-    pointers.set(e.pointerId, cur);
-    if (pointers.size === 1) {
-      state.x += cur.x - prev.x;
-      state.y += cur.y - prev.y;
-      draw();
-    } else if (pointers.size === 2 && pinch) {
-      const now = pinchInfo();
-      state.x += now.mid.x - pinch.mid.x;
-      state.y += now.mid.y - pinch.mid.y;
-      zoomTo(pinch.zoom * (now.dist / pinch.dist), now.mid.x, now.mid.y);
-      pinch.mid = now.mid;
-    }
+  // Controls Event
+  zoomInput.addEventListener("input", (e) => {
+    scale = parseFloat(e.target.value);
+    updateControlsUI();
+    render();
   });
 
-  const endPointer = (e) => {
-    pointers.delete(e.pointerId);
-    if (pointers.size < 2) pinch = null;
-    if (pointers.size === 0) stage.classList.remove("dragging");
-  };
-  stage.addEventListener("pointerup", endPointer);
-  stage.addEventListener("pointercancel", endPointer);
+  rotateInput.addEventListener("input", (e) => {
+    rotation = parseInt(e.target.value, 10);
+    updateControlsUI();
+    render();
+  });
 
-  stage.addEventListener(
-    "wheel",
-    (e) => {
-      if (!state.photo) return;
-      e.preventDefault();
-      const p = toCanvas(e);
-      zoomTo(state.zoom * Math.exp(-e.deltaY * 0.0015), p.x, p.y);
-    },
-    { passive: false }
-  );
+  zoomInBtn.addEventListener("click", () => {
+    scale = Math.min(parseFloat(zoomInput.max), scale * 1.1);
+    updateControlsUI();
+    render();
+  });
 
-  // ---- Drag & drop a photo onto the stage ----
-  stage.addEventListener("dragover", (e) => {
+  zoomOutBtn.addEventListener("click", () => {
+    scale = Math.max(parseFloat(zoomInput.min), scale / 1.1);
+    updateControlsUI();
+    render();
+  });
+
+  resetBtn.addEventListener("click", resetTransform);
+
+  // Mouse Dragging
+  canvas.addEventListener("mousedown", (e) => {
+    if (!photoImg) return;
+    isDragging = true;
+    startX = e.clientX - posX;
+    startY = e.clientY - posY;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    posX = e.clientX - startX;
+    posY = e.clientY - startY;
+    render();
+  });
+
+  window.addEventListener("mouseup", () => {
+    isDragging = false;
+  });
+
+  // Mouse Wheel Zoom
+  canvas.addEventListener("wheel", (e) => {
+    if (!photoImg) return;
     e.preventDefault();
-    stage.classList.add("over");
-  });
-  stage.addEventListener("dragleave", () => stage.classList.remove("over"));
-  stage.addEventListener("drop", (e) => {
-    e.preventDefault();
-    stage.classList.remove("over");
-    setPhoto(e.dataTransfer.files[0]);
-  });
+    const zoomFactor = e.deltaY < 0 ? 1.05 : 0.95;
+    scale = Math.min(
+      parseFloat(zoomInput.max),
+      Math.max(parseFloat(zoomInput.min), scale * zoomFactor)
+    );
+    updateControlsUI();
+    render();
+  }, { passive: false });
 
-  // ---- Controls ----
-  $("pickPhoto").addEventListener("click", () => $("photoInput").click());
-  $("photoInput").addEventListener("change", (e) => {
-    setPhoto(e.target.files[0]);
-    e.target.value = "";
-  });
-
-  zoomEl.addEventListener("input", () => zoomTo(parseFloat(zoomEl.value)));
-  rotateEl.addEventListener("input", () => {
-    state.rot = parseFloat(rotateEl.value);
-    syncControls();
-    draw();
-  });
-  $("zoomInBtn").addEventListener("click", () => zoomTo(state.zoom * 1.1));
-  $("zoomOutBtn").addEventListener("click", () => zoomTo(state.zoom / 1.1));
-  $("resetBtn").addEventListener("click", resetPosition);
-
-  $("download").addEventListener("click", () => {
+  // Download
+  downloadBtn.addEventListener("click", () => {
     canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "TwibbonBKBday.png";
+      a.href = url;
+      a.download = "TWIBBON-BILLKIN.png";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, "image/png");
   });
 
@@ -209,11 +215,9 @@
       if (bgm.paused) {
         bgm.play();
         musicToggle.textContent = "🔊 Pause Music";
-        musicToggle.classList.add("playing");
       } else {
         bgm.pause();
         musicToggle.textContent = "🎵 Play Music";
-        musicToggle.classList.remove("playing");
       }
     });
   }
