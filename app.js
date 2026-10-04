@@ -1,6 +1,6 @@
 (() => {
   // Menggunakan satu file twibbon tetap dari folder frames
-  const FIXED_FRAME_SRC = "frames/twb18.png"; 
+  const FIXED_FRAME_SRC = "Frames/twb18.png"; 
 
   const MIN_ZOOM = 0.1;
   const MAX_ZOOM = 5;
