@@ -197,7 +197,7 @@
     canvas.toBlob((blob) => {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `twibbon-${Date.now()}.png`;
+      a.download = "TwibbonBKBday.png";
       document.body.appendChild(a);
       a.click();
       a.remove();
