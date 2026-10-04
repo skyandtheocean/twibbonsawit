@@ -24,7 +24,7 @@
   let photoImg = null;
 
   // Frame URL & Canvas Size
-  const FRAME_SRC = "frame.png";
+  const FRAME_SRC = "Frames/twb18.png";
   const CANVAS_SIZE = 1080;
 
   canvas.width = CANVAS_SIZE;
