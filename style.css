@@ -4,7 +4,7 @@
   --muted: #6d6580;
   --card: #fff;
   --line: #ece4dc;
-  --accent: #e81d5d;
+  --accent: #FF4D00;
   --accent-2: #ff5a36;
   --radius: 18px;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -20,8 +20,12 @@ button, input { font: inherit; }
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
   max-width: 1120px; margin: 0 auto; padding: 22px 20px 8px;
 }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; }
-.logo { width: 26px; height: 26px; border-radius: 50%; border: 6px solid var(--accent); box-shadow: 0 0 0 3px #ffd23f inset; }
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; }
+.logo-text {
+  width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--accent); color: #fff; font-weight: 900; font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(255, 77, 0, 0.3);
+}
 .tag { margin: 0; color: var(--muted); font-size: 0.9rem; }
 
 .layout {
@@ -74,7 +78,7 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
   border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 12px;
   padding: 11px 14px; cursor: pointer; font-weight: 600; transition: transform .1s, background .15s;
 }
-.btn:hover:not(:disabled) { background: #fdf0ef; }
+.btn:hover:not(:disabled) { background: #fff3f0; }
 .btn:active:not(:disabled) { transform: scale(.98); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn.ghost { width: 100%; background: transparent; border-style: dashed; }
@@ -83,6 +87,6 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 .btn.primary {
   width: 100%; padding: 16px; font-size: 1.05rem; border: 0; color: #fff;
   background: linear-gradient(135deg, var(--accent-2), var(--accent));
-  box-shadow: 0 12px 24px -10px rgba(232, 29, 93, .7);
+  box-shadow: 0 12px 24px -10px rgba(255, 77, 0, 0.4);
 }
-.btn.primary:hover:not(:disabled) { background: linear-gradient(135deg, #ff6b4a, #f02a6a); }
+.btn.primary:hover:not(:disabled) { background: linear-gradient(135deg, #ff6126, #e64400); }
